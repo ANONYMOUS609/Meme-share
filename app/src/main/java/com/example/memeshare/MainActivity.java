@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -20,6 +21,7 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity {
 
     private ImageView meme_image;
+    private TextView caption;
     private ProgressBar progressBar;
     private Button refresh_btn;
 
@@ -27,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        caption = (TextView) findViewById(R.id.caption);
         meme_image = (ImageView) findViewById(R.id.meme);
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         refresh_btn = (Button) findViewById(R.id.refresh);
@@ -49,19 +52,19 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<Meme> call, Response<Meme> response) {
 
                 if(!response.isSuccessful()){
-                    Toast.makeText(MainActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Ruko zara thoda sabr kro", Toast.LENGTH_SHORT).show();
+                    call.cancel();
                 }
-                else {
                     Meme meme = response.body();
                     progressBar.setVisibility(View.VISIBLE);
+                    caption.setText(meme.getTitle());
                     Glide.with(getApplicationContext()).load(meme.getUrl()).into(meme_image);
-                }
 
             }
 
             @Override
             public void onFailure(Call<Meme> call, Throwable t) {
-
+                Toast.makeText(MainActivity.this, "Sorry Babu", Toast.LENGTH_SHORT).show();
             }
         });
     }
