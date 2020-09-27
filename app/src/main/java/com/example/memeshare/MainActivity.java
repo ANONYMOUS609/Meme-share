@@ -1,14 +1,13 @@
 package com.example.memeshare;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.example.memeshare.json.ApiHandler;
@@ -23,16 +22,14 @@ public class MainActivity extends AppCompatActivity {
     private ImageView meme_image;
     private TextView caption;
     private ProgressBar progressBar;
-    private Button refresh_btn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        caption = (TextView) findViewById(R.id.caption);
-        meme_image = (ImageView) findViewById(R.id.meme);
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        refresh_btn = (Button) findViewById(R.id.refresh);
+        caption = findViewById(R.id.caption);
+        meme_image = findViewById(R.id.meme);
+        progressBar = findViewById(R.id.progressBar);
 
         fetchMeme();
         progressBar.setVisibility(View.VISIBLE);
@@ -57,7 +54,8 @@ public class MainActivity extends AppCompatActivity {
                 }
                     Meme meme = response.body();
                     progressBar.setVisibility(View.VISIBLE);
-                    caption.setText(meme.getTitle());
+                assert meme != null;
+                caption.setText(meme.getTitle());
                     Glide.with(getApplicationContext()).load(meme.getUrl()).into(meme_image);
 
             }
