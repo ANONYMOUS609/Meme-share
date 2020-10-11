@@ -5,15 +5,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#000"
     tools:context=".SplashScreen">
 
-    <pl.droidsonroids.gif.GifImageView
-        android:src="@drawable/twitch"
-        android:scaleType="fitXY"
+    <ImageView
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:src="@drawable/nike_logo"
         android:adjustViewBounds="true"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:scaleType="fitXY"
+        android:layout_width="150dp"
+        android:layout_height="100dp">
 
-    </pl.droidsonroids.gif.GifImageView>
+    </ImageView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

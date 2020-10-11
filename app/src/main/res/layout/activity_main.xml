@@ -70,4 +70,26 @@
 
     </Button>
 
+
+    <Button
+        android:id="@+id/share"
+        android:onClick="share"
+        android:layout_marginTop="15dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:text="share"
+        android:background="#000"
+        android:textColor="#fff"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif"
+        android:textSize="20sp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/refresh"
+        android:layout_width="match_parent"
+        android:layout_height="45dp">
+
+    </Button>
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
