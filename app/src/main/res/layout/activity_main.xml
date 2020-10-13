@@ -21,6 +21,7 @@
 
     </ProgressBar>
 
+
     <TextView
         android:id="@+id/caption"
         android:layout_width="match_parent"
@@ -31,9 +32,9 @@
         android:paddingRight="5sp"
         android:textSize="18sp"
         android:textStyle="italic"
-        android:textColor="@color/colorPrimaryDark"
+        android:textColor="@color/colorPrimary"
         android:fontFamily="sans-serif-condensed"
-        android:paddingStart="15sp"
+        android:paddingStart="10sp"
         android:paddingEnd="5sp">
 
     </TextView>
@@ -54,8 +55,8 @@
         android:id="@+id/refresh"
         android:onClick="refresh_btn"
         android:layout_marginTop="15dp"
-        android:layout_marginLeft="25dp"
-        android:layout_marginRight="25dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
         android:text="@string/next"
         android:background="@drawable/button_background"
         android:textColor="#000"
@@ -75,8 +76,8 @@
         android:id="@+id/share"
         android:onClick="share"
         android:layout_marginTop="15dp"
-        android:layout_marginLeft="25dp"
-        android:layout_marginRight="25dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
         android:text="share"
         android:background="@drawable/button_background"
         android:textColor="#000"
