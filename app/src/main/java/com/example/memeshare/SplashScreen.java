@@ -20,6 +20,6 @@ public class SplashScreen extends Activity {
                 SplashScreen.this.startActivity(intent);
                 SplashScreen.this.finish();
             }
-        }, 2000);
+        }, 3000);
     }
 }

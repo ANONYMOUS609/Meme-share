@@ -5,20 +5,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000"
     tools:context=".SplashScreen">
 
-    <ImageView
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:src="@drawable/nike_logo"
-        android:adjustViewBounds="true"
-        android:scaleType="fitXY"
-        android:layout_width="150dp"
-        android:layout_height="100dp">
+    <com.airbnb.lottie.LottieAnimationView
+        app:lottie_fileName="paperplane.json"
+        android:id="@+id/animation"
+        app:lottie_loop="true"
+        app:lottie_autoPlay="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    </ImageView>
+    </com.airbnb.lottie.LottieAnimationView>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
