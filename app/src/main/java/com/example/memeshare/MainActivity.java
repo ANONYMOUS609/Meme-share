@@ -1,29 +1,38 @@
 package com.example.memeshare;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.example.memeshare.json.ApiHandler;
 import com.example.memeshare.json.Meme;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,18 +48,31 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     public static String ImgUrl = "";
     public static String CapUrl = "";
+    public Uri bmpUri, mImageUri;
+    private StorageReference storageReference;
+    private DatabaseReference databaseReference;
+    Bitmap uploadBmp, bmp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         caption = findViewById(R.id.caption);
         meme_image = findViewById(R.id.meme);
         progressBar = findViewById(R.id.progressBar);
         progressBar.setVisibility(View.VISIBLE);
 
-        fetchMeme();
+//        FirebaseApp.initializeApp(this);
+        storageReference = FirebaseStorage.getInstance().getReference("uploads/");
+        databaseReference = FirebaseDatabase.getInstance().getReference("uploads");
 
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                fetchMeme();
+            }
+        });
     }
 
     public void refresh_btn(View view) {
@@ -76,12 +98,14 @@ public class MainActivity extends AppCompatActivity {
                 CapUrl = meme.getTitle();
 
                     Glide.with(getApplicationContext()).load(meme.getUrl()).into(meme_image);
+//                    uploadBmp = ((BitmapDrawable) meme_image.getDrawable()).getBitmap();
+
 
             }
 
             @Override
             public void onFailure(Call<Meme> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Please check your internet connection", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Please check your internet connection \n" + t.toString(), Toast.LENGTH_SHORT).show();
                 meme_image.setVisibility(View.INVISIBLE);
             }
         });
@@ -95,23 +119,20 @@ public class MainActivity extends AppCompatActivity {
 //        intent.putExtra(Intent.EXTRA_SUBJECT, CapUrl +" meme");
 //        startActivity(Intent.createChooser(intent, "Share Using"));
 
-        Bitmap bitmap = null;
-        
+//        Bitmap bitmap;
+//        Uri bmpUri;
+
         Drawable drawable = meme_image.getDrawable();
         if(drawable instanceof BitmapDrawable){
-            bitmap = ((BitmapDrawable) meme_image.getDrawable()).getBitmap();
+            uploadBmp = ((BitmapDrawable) meme_image.getDrawable()).getBitmap();
         }
-        else {
-            return;
-        }
-        Uri bmpUri = null;
 
         try {
 
             File file = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES),
                     "share_image_" + System.currentTimeMillis() + ".png");
             FileOutputStream out = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
+            uploadBmp.compress(Bitmap.CompressFormat.PNG, 90, out);
             out.close();
 
             bmpUri = FileProvider.getUriForFile(MainActivity.this, "com.codepath.fileprovider", file);
@@ -123,10 +144,82 @@ public class MainActivity extends AppCompatActivity {
             shareIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(Intent.createChooser(shareIntent, "Share Image"));
 
-        } catch (Exception e){
 
+        } catch (Exception e){
+            Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show();
         }
     }
+
+    public void upload(View view) {
+        uploadFile();
+    }
+
+    private void uploadFile() {
+
+        Drawable drawable = meme_image.getDrawable();
+        if(drawable instanceof BitmapDrawable){
+            bmp = ((BitmapDrawable) meme_image.getDrawable()).getBitmap();
+        }
+
+
+        if(bmp != null){
+            StorageReference reference = storageReference.child(System.currentTimeMillis() + ".png");
+            mImageUri = getImageUri(MainActivity.this, bmp);
+            reference.putFile(mImageUri)
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            Toast.makeText(MainActivity.this, "Successful", Toast.LENGTH_SHORT).show();
+                            Upload upload = new Upload(CapUrl, taskSnapshot.getMetadata().getReference().getDownloadUrl().toString());
+                            String uploadId = databaseReference.push().getKey();
+                            databaseReference.child(uploadId).setValue(upload);
+
+                        }
+                    }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
+
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+
+                }
+            });
+        } else {
+            Toast.makeText(this, "Can't upload", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+//    public static Bitmap drawableToBitmap(Drawable drawable) {
+//        Bitmap bitmap = null;
+//
+//        if (drawable instanceof BitmapDrawable) {
+//            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+//            if(bitmapDrawable.getBitmap() != null) {
+//                return bitmapDrawable.getBitmap();
+//            }
+//        }
+//
+//        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
+//            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
+//        } else {
+//            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+//        }
+//
+//        Canvas canvas = new Canvas(bitmap);
+//        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+//        drawable.draw(canvas);
+//        return bitmap;
+//    }
+
+    private Uri getImageUri(Context context, Bitmap inImage) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        inImage.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+        String path = MediaStore.Images.Media.insertImage(context.getContentResolver(), inImage, CapUrl, null);
+        return Uri.parse(path);
+    }
+
 
 //    public static void fixMediaDir() {
 //        File sdcard = Environment.getExternalStorageDirectory();
