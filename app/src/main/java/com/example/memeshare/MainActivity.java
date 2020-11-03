@@ -3,7 +3,6 @@ package com.example.memeshare;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
@@ -26,7 +25,6 @@ import com.example.memeshare.json.ApiHandler;
 import com.example.memeshare.json.Meme;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -107,7 +105,8 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<Meme> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Please check your internet connection \n" + t.toString(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Please check your internet connection \n"
+                        + t.toString(), Toast.LENGTH_SHORT).show();
                 meme_image.setVisibility(View.INVISIBLE);
             }
         });
@@ -170,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
             bmp = ((BitmapDrawable) meme_image.getDrawable()).getBitmap();
         }
 
-
+//        bmp = ((BitmapDrawable) meme_image.getDrawable().getCurrent()).getBitmap();
         if(bmp != null){
             StorageReference reference = storageReference.child(System.currentTimeMillis() + ".png");
             mImageUri = getImageUri(MainActivity.this, bmp);
