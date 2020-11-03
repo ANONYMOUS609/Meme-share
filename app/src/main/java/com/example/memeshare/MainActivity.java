@@ -205,7 +205,8 @@ public class MainActivity extends AppCompatActivity {
 
                 }
             });
-        } else {
+        }
+        else {
             Toast.makeText(this, "Can't upload", Toast.LENGTH_SHORT).show();
         }
     }
