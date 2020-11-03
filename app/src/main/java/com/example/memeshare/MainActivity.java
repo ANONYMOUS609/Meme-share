@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ImageView;
@@ -31,6 +32,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.StorageTask;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
@@ -51,7 +53,9 @@ public class MainActivity extends AppCompatActivity {
     public Uri bmpUri, mImageUri;
     private StorageReference storageReference;
     private DatabaseReference databaseReference;
+    private StorageTask mStorageTask;
     Bitmap uploadBmp, bmp;
+    ProgressBar horizontal_bar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,17 +66,12 @@ public class MainActivity extends AppCompatActivity {
         meme_image = findViewById(R.id.meme);
         progressBar = findViewById(R.id.progressBar);
         progressBar.setVisibility(View.VISIBLE);
+        horizontal_bar = findViewById(R.id.horizontal_bar);
 
-//        FirebaseApp.initializeApp(this);
         storageReference = FirebaseStorage.getInstance().getReference("uploads/");
         databaseReference = FirebaseDatabase.getInstance().getReference("uploads");
 
-        this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                fetchMeme();
-            }
-        });
+       fetchMeme();
     }
 
     public void refresh_btn(View view) {
@@ -91,15 +90,18 @@ public class MainActivity extends AppCompatActivity {
                     progressBar.setVisibility(View.INVISIBLE);
                     call.cancel();
                 }
+                try {
                     Meme meme = response.body();
-                assert meme != null;
-                caption.setText(meme.getTitle());
-                ImgUrl = meme.getUrl();
-                CapUrl = meme.getTitle();
+                    assert meme != null;
+                    caption.setText(meme.getTitle());
+                    ImgUrl = meme.getUrl();
+                    CapUrl = meme.getTitle();
 
                     Glide.with(getApplicationContext()).load(meme.getUrl()).into(meme_image);
-//                    uploadBmp = ((BitmapDrawable) meme_image.getDrawable()).getBitmap();
-
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                }
 
             }
 
@@ -144,6 +146,9 @@ public class MainActivity extends AppCompatActivity {
             shareIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(Intent.createChooser(shareIntent, "Share Image"));
 
+            uploadBmp = null;
+            bmpUri = null;
+
 
         } catch (Exception e){
             Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show();
@@ -151,6 +156,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void upload(View view) {
+        if (mStorageTask != null && mStorageTask.isInProgress()){
+            Toast.makeText(this, "Task is in progress", Toast.LENGTH_SHORT).show();
+        }
+        else
         uploadFile();
     }
 
@@ -165,12 +174,20 @@ public class MainActivity extends AppCompatActivity {
         if(bmp != null){
             StorageReference reference = storageReference.child(System.currentTimeMillis() + ".png");
             mImageUri = getImageUri(MainActivity.this, bmp);
-            reference.putFile(mImageUri)
+            mStorageTask = reference.putFile(mImageUri)
                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    horizontal_bar.setProgress(0);
+                                }
+                            }, 700);
+
                             Toast.makeText(MainActivity.this, "Successful", Toast.LENGTH_SHORT).show();
-                            Upload upload = new Upload(CapUrl, taskSnapshot.getMetadata().getReference().getDownloadUrl().toString());
+                            Upload upload = new Upload(CapUrl.trim(), taskSnapshot.getMetadata().getReference().getDownloadUrl().toString());
                             String uploadId = databaseReference.push().getKey();
                             databaseReference.child(uploadId).setValue(upload);
 
@@ -178,6 +195,9 @@ public class MainActivity extends AppCompatActivity {
                     }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
+
+                    double progress = (100.0 * snapshot.getBytesTransferred()/snapshot.getTotalByteCount());
+                    horizontal_bar.setProgress((int) progress);
 
                 }
             }).addOnFailureListener(new OnFailureListener() {
