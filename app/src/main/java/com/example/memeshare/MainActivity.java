@@ -10,6 +10,9 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -23,8 +26,11 @@ import androidx.core.content.FileProvider;
 import com.bumptech.glide.Glide;
 import com.example.memeshare.json.ApiHandler;
 import com.example.memeshare.json.Meme;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -51,7 +57,8 @@ public class MainActivity extends AppCompatActivity {
     public Uri bmpUri, mImageUri;
     private StorageReference storageReference;
     private DatabaseReference databaseReference;
-    private StorageTask mStorageTask;
+//    private StorageTask mStorageTask;
+    Task<Uri> uriTask;
     Bitmap uploadBmp, bmp;
     ProgressBar horizontal_bar;
 
@@ -155,10 +162,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void upload(View view) {
-        if (mStorageTask != null && mStorageTask.isInProgress()){
-            Toast.makeText(this, "Task is in progress", Toast.LENGTH_SHORT).show();
-        }
-        else
+
         uploadFile();
     }
 
@@ -171,71 +175,84 @@ public class MainActivity extends AppCompatActivity {
 
 //        bmp = ((BitmapDrawable) meme_image.getDrawable().getCurrent()).getBitmap();
         if(bmp != null){
-            StorageReference reference = storageReference.child(System.currentTimeMillis() + ".png");
+            final StorageReference reference = storageReference.child(System.currentTimeMillis() + ".jpg");
             mImageUri = getImageUri(MainActivity.this, bmp);
-            mStorageTask = reference.putFile(mImageUri)
-                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    horizontal_bar.setProgress(0);
-                                }
-                            }, 700);
+            UploadTask uploadTask = reference.putFile(mImageUri);
 
-                            Toast.makeText(MainActivity.this, "Successful", Toast.LENGTH_SHORT).show();
-                            Upload upload = new Upload(CapUrl.trim(), taskSnapshot.getMetadata().getReference().getDownloadUrl().toString());
-                            String uploadId = databaseReference.push().getKey();
-                            databaseReference.child(uploadId).setValue(upload);
-
-                        }
-                    }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+             uriTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
                 @Override
-                public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
+                public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                    if (!task.isSuccessful()){
+                        throw task.getException();
+                    }
 
-                    double progress = (100.0 * snapshot.getBytesTransferred()/snapshot.getTotalByteCount());
-                    horizontal_bar.setProgress((int) progress);
-
+                    return reference.getDownloadUrl();
                 }
-            }).addOnFailureListener(new OnFailureListener() {
+            }).addOnCompleteListener(new OnCompleteListener<Uri>() {
                 @Override
-                public void onFailure(@NonNull Exception e) {
+                public void onComplete(@NonNull Task<Uri> task) {
+
+                    if(task.isSuccessful()){
+                        Uri downloadUri = task.getResult();
+
+                        Upload upload = new Upload(CapUrl.trim(), downloadUri.toString());
+                        String uploadId = databaseReference.push().getKey();
+                        databaseReference.child(uploadId).setValue(upload);
+                        Toast.makeText(MainActivity.this, "Uploaded", Toast.LENGTH_SHORT).show();
+
+                    }
+                    else{
+                        Toast.makeText(MainActivity.this, "Url failed to load", Toast.LENGTH_SHORT).show();
+                    }
 
                 }
             });
+//            mStorageTask = reference.putFile(mImageUri)
+//                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+//                        @Override
+//                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+//
+//                            new Handler().postDelayed(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    horizontal_bar.setProgress(0);
+//                                }
+//                            }, 700);
+//
+//                            Toast.makeText(MainActivity.this, "Successful", Toast.LENGTH_SHORT).show();
+//
+//                            Upload upload = new Upload(CapUrl.trim(),
+//                                    taskSnapshot.getMetadata().getReference().getDownloadUrl().toString()
+//
+//                            );
+//                            String uploadId = databaseReference.push().getKey();
+//                            databaseReference.child(uploadId).setValue(upload);
+//
+//                        }
+//                    }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+//                @Override
+//                public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
+//
+//                    double progress = (100.0 * snapshot.getBytesTransferred()/snapshot.getTotalByteCount());
+//                    horizontal_bar.setProgress((int) progress);
+//
+//                }
+//            }).addOnFailureListener(new OnFailureListener() {
+//                @Override
+//                public void onFailure(@NonNull Exception e) {
+//
+//                }
+//            });
         }
         else {
             Toast.makeText(this, "Can't upload", Toast.LENGTH_SHORT).show();
         }
     }
 
-//    public static Bitmap drawableToBitmap(Drawable drawable) {
-//        Bitmap bitmap = null;
-//
-//        if (drawable instanceof BitmapDrawable) {
-//            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-//            if(bitmapDrawable.getBitmap() != null) {
-//                return bitmapDrawable.getBitmap();
-//            }
-//        }
-//
-//        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
-//            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
-//        } else {
-//            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-//        }
-//
-//        Canvas canvas = new Canvas(bitmap);
-//        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-//        drawable.draw(canvas);
-//        return bitmap;
-//    }
-
     private Uri getImageUri(Context context, Bitmap inImage) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        inImage.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+        inImage.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
         String path = MediaStore.Images.Media.insertImage(context.getContentResolver(), inImage, CapUrl, null);
         return Uri.parse(path);
     }
@@ -251,4 +268,22 @@ public class MainActivity extends AppCompatActivity {
 //        camera.mkdir();
 //    }
 
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.get_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+
+        if (item.getItemId() == R.id.get){
+            Intent intent = new Intent(MainActivity.this, FavAct.class);
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 }

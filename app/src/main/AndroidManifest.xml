@@ -3,11 +3,8 @@
     package="com.example.memeshare">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE">
-    </uses-permission>
-
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE">
-    </uses-permission>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"></uses-permission>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>
 
     <application
         android:allowBackup="true"
@@ -16,19 +13,16 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".FavAct"></activity>
 
         <provider
-            android:authorities="com.codepath.fileprovider"
             android:name="androidx.core.content.FileProvider"
+            android:authorities="com.codepath.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
-
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/fileprovider">
-
-            </meta-data>
-
+                android:resource="@xml/fileprovider"></meta-data>
         </provider>
 
         <activity android:name=".SplashScreen">
@@ -38,8 +32,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity">
-        </activity>
+        <activity android:name=".MainActivity"></activity>
     </application>
 
 </manifest>
