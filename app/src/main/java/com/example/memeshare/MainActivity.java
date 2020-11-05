@@ -6,9 +6,9 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
@@ -28,20 +29,17 @@ import com.example.memeshare.json.ApiHandler;
 import com.example.memeshare.json.Meme;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.StorageTask;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Objects;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -88,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
         Call<Meme> call = apiHandler.getMeme();
         call.enqueue(new Callback<Meme>() {
             @Override
-            public void onResponse(Call<Meme> call, Response<Meme> response) {
+            public void onResponse(@NonNull Call<Meme> call, @NonNull Response<Meme> response) {
 
                 if(!response.isSuccessful()){
                     Toast.makeText(MainActivity.this, "404 not found", Toast.LENGTH_SHORT).show();
@@ -111,9 +109,9 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<Meme> call, Throwable t) {
+            public void onFailure(@NonNull Call<Meme> call, @NonNull Throwable t) {
                 Toast.makeText(MainActivity.this, "Please check your internet connection \n"
-                        + t.toString(), Toast.LENGTH_SHORT).show();
+                        + t.getMessage(), Toast.LENGTH_SHORT).show();
                 meme_image.setVisibility(View.INVISIBLE);
             }
         });
@@ -152,13 +150,12 @@ public class MainActivity extends AppCompatActivity {
             shareIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(Intent.createChooser(shareIntent, "Share Image"));
 
-            uploadBmp = null;
-            bmpUri = null;
-
 
         } catch (Exception e){
             Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show();
         }
+
+        uploadBmp = null;
     }
 
     public void upload(View view) {
@@ -181,10 +178,11 @@ public class MainActivity extends AppCompatActivity {
             UploadTask uploadTask = reference.putFile(mImageUri);
 
              uriTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+                @RequiresApi(api = Build.VERSION_CODES.KITKAT)
                 @Override
                 public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
                     if (!task.isSuccessful()){
-                        throw task.getException();
+                        throw Objects.requireNonNull(task.getException());
                     }
 
                     return reference.getDownloadUrl();
@@ -196,8 +194,10 @@ public class MainActivity extends AppCompatActivity {
                     if(task.isSuccessful()){
                         Uri downloadUri = task.getResult();
 
+                        assert downloadUri != null;
                         Upload upload = new Upload(CapUrl.trim(), downloadUri.toString());
                         String uploadId = databaseReference.push().getKey();
+                        assert uploadId != null;
                         databaseReference.child(uploadId).setValue(upload);
                         Toast.makeText(MainActivity.this, "Uploaded", Toast.LENGTH_SHORT).show();
 
@@ -248,6 +248,7 @@ public class MainActivity extends AppCompatActivity {
         else {
             Toast.makeText(this, "Can't upload", Toast.LENGTH_SHORT).show();
         }
+        bmp = null;
     }
 
     private Uri getImageUri(Context context, Bitmap inImage) {
