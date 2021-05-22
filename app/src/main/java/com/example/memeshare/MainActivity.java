@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
                 if(!response.isSuccessful()){
                     Toast.makeText(MainActivity.this, "404 not found", Toast.LENGTH_SHORT).show();
-                    progressBar.setVisibility(View.INVISIBLE);
+                    progressBar.setVisibility(View.GONE);
                     call.cancel();
                 }
                 try {
@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
                     caption.setText(meme.getTitle());
                     ImgUrl = meme.getUrl();
                     CapUrl = meme.getTitle();
-
+                    progressBar.setVisibility(View.GONE);
                     Glide.with(getApplicationContext()).load(meme.getUrl()).into(meme_image);
                 }
                 catch (Exception e){
@@ -113,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Please check your internet connection \n"
                         + t.getMessage(), Toast.LENGTH_SHORT).show();
                 meme_image.setVisibility(View.INVISIBLE);
+                progressBar.setVisibility(View.GONE);
             }
         });
     }

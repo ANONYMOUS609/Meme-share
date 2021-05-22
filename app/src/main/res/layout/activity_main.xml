@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -18,15 +17,16 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/guideline">
+
     </ProgressBar>
 
     <ProgressBar
         android:id="@+id/horizontal_bar"
-        android:layout_margin="2dp"
-        app:layout_constraintTop_toBottomOf="@+id/meme"
         style="@style/Widget.AppCompat.ProgressBar.Horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        app:layout_constraintTop_toBottomOf="@+id/meme">
 
     </ProgressBar>
 
@@ -36,11 +36,10 @@
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-condensed"
         android:maxLines="1"
-        android:paddingStart="10sp"
-        android:paddingEnd="5sp"
+        android:padding="8dp"
         android:text="@string/loading"
         android:textColor="@color/colorPrimary"
-        android:textSize="18sp"
+        android:textSize="16sp"
         android:textStyle="italic"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -49,67 +48,75 @@
     <ImageView
         android:id="@+id/meme"
         android:layout_width="match_parent"
-        android:layout_height="512dp"
-        android:layout_margin="6dp"
+        android:layout_height="0dp"
+        android:layout_margin="2dp"
         android:adjustViewBounds="true"
         android:contentDescription="@string/todo"
+        android:scaleType="fitXY"
+        app:layout_constraintBottom_toBottomOf="@+id/guideline3"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/caption">
+        app:layout_constraintTop_toBottomOf="@+id/guideline">
+
     </ImageView>
 
-    <Button
-        android:id="@+id/refresh"
-        android:layout_width="42dp"
-        android:layout_height="42dp"
-        android:layout_marginBottom="72dp"
-        android:background="@drawable/ic_baseline_next_plan_24"
-        android:fontFamily="sans-serif"
-        android:onClick="refresh_btn"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="@+id/guideline2">
-    </Button>
-
-
-    <Button
-        android:id="@+id/share"
-        android:layout_width="42dp"
-        android:layout_height="42dp"
-        android:layout_marginBottom="72dp"
-        android:background="@drawable/ic_baseline_share_24"
-        android:fontFamily="sans-serif"
-        android:onClick="share"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="@+id/guideline2"
-        app:layout_constraintRight_toRightOf="parent">
-
-    </Button>
-
-    <Button
-        android:id="@+id/upload"
-        android:layout_width="42dp"
-        android:layout_height="42dp"
-        android:layout_marginBottom="72dp"
-        android:background="@drawable/ic_baseline_save_alt_24"
-        android:onClick="upload"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-    </Button>
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline2"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.50" />
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/horizontal_bar">
+
+
+        <Button
+            android:id="@+id/refresh"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/ic_baseline_next_plan_24"
+            android:fontFamily="sans-serif"
+            android:onClick="refresh_btn">
+
+        </Button>
+
+
+        <Button
+            android:id="@+id/share"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/ic_baseline_share_24"
+            android:fontFamily="sans-serif"
+            android:onClick="share">
+
+        </Button>
+
+        <Button
+            android:id="@+id/upload"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/ic_baseline_save_alt_24"
+            android:onClick="upload">
+
+        </Button>
+
+    </LinearLayout>
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_begin="295dp" />
+        app:layout_constraintGuide_percent="0.10" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.70" />
 </androidx.constraintlayout.widget.ConstraintLayout>
